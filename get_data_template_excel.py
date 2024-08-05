@@ -23,8 +23,7 @@ def get_data_template_excel(ruta_archivo):
                             'fill': celda.fill,
                             'border': celda.border,
                             'alignment': celda.alignment,
-                            'number_format': celda.number_format,
-                            'protection': celda.protection
+                            'number_format': celda.number_format
                         }
                         posiciones_estilos[nombre_hoja][posicion_celda] = estilo_celda
                     elif valor_celda == "??FIN??":

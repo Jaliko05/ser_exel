@@ -19,7 +19,7 @@ def main():
     separator = '' 
     # name_report_txt = params[1]
     # number_session = params[2]
-    name_report_txt = '000007453'
+    name_report_txt = '000015656'
 
     rout_aplication = str(Path(__file__).parent.absolute())# ruta SIIFNET
     print(rout_aplication)
