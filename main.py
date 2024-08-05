@@ -7,6 +7,8 @@ import os
 from get_txt import get_routs, get_name_template
 from pathlib import Path
 from xls2xlsx import XLS2XLSX
+from convert_xls_to_xlsx import convert_xls_to_xlsx
+from unify_sheets import unify_sheets
 
 def main():
     #obtener datos de la linea de comandos
@@ -17,7 +19,7 @@ def main():
     separator = '' 
     # name_report_txt = params[1]
     # number_session = params[2]
-    name_report_txt = '000015656'
+    name_report_txt = '000007453'
 
     rout_aplication = str(Path(__file__).parent.absolute())# ruta SIIFNET
     print(rout_aplication)
@@ -34,7 +36,7 @@ def main():
     #Variables iniciales para log
     nameAplication = "ser_excel"
     message = "Iniciando aplicación ser_excel \n"
-
+ 
 
     # if params.count > 1:
     rout_fiel_txt = rout_environment + "\\" + get_routs(rout_aplication,24).strip() + name_report_txt + '.txt' #ruta del reporte txt
@@ -52,8 +54,7 @@ def main():
             print("template xls, convertir a xlsx")
             message = message + " Plantilla con extension xls, se convertirá a xlsx \n"
             try:
-                x2x = XLS2XLSX(rout_template_excel_xls)
-                x2x.to_xlsx(rout_template_excel)
+                convert_xls_to_xlsx(rout_template_excel_xls, rout_template_excel)
             except Exception as e:
                 print(e)
                 message = message + "Error al convertir la plantilla xls a xlsx" + "\n"
@@ -61,11 +62,10 @@ def main():
         if os.path.exists(rout_template_excel):
             message = message + "Ruta del archivo de plantilla: " + rout_template_excel + "\n"
             datos_txt = get_data_report_txt(rout_fiel_txt)
-            posiciones_excel, posiciones_fin = get_data_template_excel(rout_template_excel)
-            print(posiciones_fin)
-            create_report_excel(rout_template_excel, posiciones_excel, posiciones_fin, datos_txt)
+            posiciones_excel, posiciones_estilos,  posiciones_fin = get_data_template_excel(rout_template_excel)
+            name_report_excel = create_report_excel(rout_template_excel, posiciones_excel, posiciones_estilos, posiciones_fin, datos_txt)
             #unificacion de las hojas
-            # unify_sheets(rout_template_excel, posiciones_fin)
+            unify_sheets(name_report_excel)
         else:
             print("No existe el archivo de la plantilla")
             message = message + "No existe el archivo de la plantilla" + "\n"

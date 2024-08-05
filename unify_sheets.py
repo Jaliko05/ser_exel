@@ -1,35 +1,42 @@
-import openpyxl
-from openpyxl.utils import get_column_letter
-from copy import copy
+from openpyxl import load_workbook
+from openpyxl.utils import range_boundaries
 
-# Cargar el archivo de origen
-input_file = '"C:\\Users\\javier.puentes\\ser_excel\\SIIF_IDEA\\PLANTILLAS\\FINE088_834914.xlsx"'
-wb = openpyxl.load_workbook(input_file)
+def unify_sheets(input_file):
+    # Load the input workbook
+    workbook = load_workbook(input_file)
+    if "PRINCIPAL" in workbook.sheetnames:
+        principal_sheet = workbook["PRINCIPAL"]
+    else:
+        principal_sheet = workbook.create_sheet(title="PRINCIPAL")
 
-# Seleccionar la primera hoja para unificar las demás en ella
-unified_sheet = wb.active
+    row_offset = 0
 
-current_row = unified_sheet.max_row + 1
+    for sheet_name in workbook.sheetnames:
+        if sheet_name == "PRINCIPAL":
+            continue
+        sheet = workbook[sheet_name]
 
-# Función para copiar el contenido y estilos de una celda a otra
-def copy_cell(source_cell, target_cell):
-    target_cell.value = source_cell.value
-    if source_cell.has_style:
-        target_cell.font = copy(source_cell.font)
-        target_cell.border = copy(source_cell.border)
-        target_cell.fill = copy(source_cell.fill)
-        target_cell.number_format = copy(source_cell.number_format)
-        target_cell.protection = copy(source_cell.protection)
-        target_cell.alignment = copy(source_cell.alignment)
+        # Copy merged cells
+        for merged_cell_range in sheet.merged_cells.ranges:
+            min_col, min_row, max_col, max_row = range_boundaries(str(merged_cell_range))
+            min_row += row_offset
+            max_row += row_offset
+            principal_sheet.merge_cells(start_row=min_row, start_column=min_col, end_row=max_row, end_column=max_col)
 
-# Iterar sobre todas las hojas del archivo excepto la primera
-for sheet_name in wb.sheetnames[1:]:
-    sheet = wb[sheet_name]
-    for row in sheet.iter_rows():
-        for source_cell in row:
-            target_cell = unified_sheet.cell(row=current_row, column=source_cell.column)
-            copy_cell(source_cell, target_cell)
-        current_row += 1
+        # Copy cell values and styles
+        for row in sheet.iter_rows():
+            for cell in row:
+                new_cell = principal_sheet.cell(row=cell.row + row_offset, column=cell.column, value=cell.value)
+                if cell.has_style:
+                    new_cell._style = cell._style
 
-# Guardar el archivo unificado
-wb.save(input_file)
+            # Check for the "??FIN??" marker to determine row offset
+            if any(cell.value == "??FIN??" for cell in row):
+                row_offset = principal_sheet.max_row
+
+    # Save the workbook back to the original file
+    workbook.save(input_file)
+
+# # Example usage:
+# input_file = 'PSRH2060_139251.xlsx'
+# unify_sheets(input_file)
